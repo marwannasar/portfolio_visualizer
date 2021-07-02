@@ -23,6 +23,12 @@ public class PortfolioService {
         return portfolioRepository.findAll();
     }
 
+    public List<holdings> getSpecificStockInfo(String ticker) {
+        holdings theStock = portfolioRepository.findById(ticker).orElse(null);
+        System.out.println(List.of(theStock));
+        return List.of(theStock);
+    }
+
     public void addNewStock(holdings stock) {
         Optional<holdings> stockByTicker = portfolioRepository.findStockByTicker(stock.getTicker());
 

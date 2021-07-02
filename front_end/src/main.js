@@ -4,6 +4,8 @@ import "vuetify/dist/vuetify.min.css"
 import Vuetify from 'vuetify'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
+import '@fortawesome/fontawesome-free/css/all.css'
+import '@fortawesome/fontawesome-free/js/all.js'
 
 window.axios = require('axios');
 

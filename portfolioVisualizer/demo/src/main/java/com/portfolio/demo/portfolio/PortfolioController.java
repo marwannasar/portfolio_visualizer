@@ -20,9 +20,15 @@ public class PortfolioController {
         return portfolioService.getStockInfo();
     }
 
+    @RequestMapping("/stocks/{stockTicker}")
+    public List<holdings> getSpecificStockInfo(@PathVariable ("stockTicker") String ticker){
+        return portfolioService.getSpecificStockInfo(ticker);
+    }
+
     @PostMapping(path="/stocks")
-    public void addStock(@RequestBody holdings stock){
+    public String addStock(@RequestBody holdings stock){
         portfolioService.addNewStock(stock);
+        return "update complete (stock added)";
     }
 
 
