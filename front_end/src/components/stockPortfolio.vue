@@ -1,7 +1,7 @@
 <template>
     <div>
         <v-form>
-            <v-container class="grey lighten-5 addStockContainer">
+            <v-container class="addStockContainer">
                 <h2 class="mt-1">Add/Update Stock</h2>
                 <v-col cols="2" class="colInputs">
 
@@ -17,16 +17,12 @@
                         <v-text-field label = "Number of Shares" outlined v-model="num_shares" @keyup.enter="addItem"> </v-text-field>
                     </v-row>
 
-                    <v-row class="rowInputs">
+                    <v-row class="addButton">
                         <v-btn color="primary" elevation="5" @click.native="addStock">Add</v-btn>
                     </v-row>
                 </v-col>
 
-            </v-container>
-        </v-form>
-
-        <v-container>
-            <v-simple-table class="listOfStocks" fixed-header>
+                <v-simple-table fixed-header>
                 <template v-slot:default>
                     <thead>
                         <tr>
@@ -40,7 +36,7 @@
                                 Number of Shares
                             </th>
                             <th class="text-center">
-                                #
+                                <!-- # -->
                             </th> 
                         </tr>
                     </thead>
@@ -59,7 +55,13 @@
                     </tbody>
                 </template>
             </v-simple-table>
-        </v-container>
+
+            </v-container>
+        </v-form>
+
+<!--         <v-container class="grey lighten-6 listOfStocks">
+            
+        </v-container> -->
         
     </div>
 </template>
@@ -176,8 +178,8 @@ export default {
     .rowInputs{
         margin-bottom: -8%;
     }
-    .listOfStocks{
-        max-width:100%;
+    .addButton{
+        margin-bottom: 3%;
     }
 
 </style>
