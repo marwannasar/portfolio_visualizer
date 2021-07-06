@@ -11,9 +11,11 @@
     "@vue/composition-api": "^1.0.0-rc.12",
     "@vuelidate/core": "^2.0.0-alpha.20",
     "@vuelidate/validators": "^2.0.0-alpha.18",
+    "apexcharts": "^3.27.1",
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
     "vue": "^2.6.11",
+    "vue-apexcharts": "^1.6.1",
     "vue-axios": "^3.2.4",
     "vuetify": "^2.5.5"
   },

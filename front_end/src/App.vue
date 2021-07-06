@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar dark color="purple" dense app>
+    <v-app-bar dark color="black" dense app>
       <v-toolbar-title >Portfolio Visualizer</v-toolbar-title>
     </v-app-bar>
 

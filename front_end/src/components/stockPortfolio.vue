@@ -1,68 +1,67 @@
 <template>
     <div>
-        <v-form>
-            <v-container class="addStockContainer">
-                <h2 class="mt-1">Add/Update Stock</h2>
-                <v-col cols="2" class="colInputs">
+        <v-container class="addStockContainer">
+            <h2 class="addStockTitle">Add/Update Stock</h2>
+            <v-col cols="2" class="colInputs">
 
-                    <v-row class="rowInputs">
-                        <v-text-field label = "Ticker" outlined v-model="ticker" @keyup.enter="addItem"> </v-text-field>
-                    </v-row>
+                <v-row class="rowInputs">
+                    <v-text-field label = "Ticker" outlined v-model="ticker" @keyup.enter="addItem"> </v-text-field>
+                </v-row>
 
-                    <v-row class="rowInputs">
-                        <v-text-field label = "Average Price" outlined v-model="avg_price" @keyup.enter="addItem"> </v-text-field>
-                    </v-row>
+                <v-row class="rowInputs">
+                    <v-text-field label = "Average Price" outlined v-model="avg_price" @keyup.enter="addItem"> </v-text-field>
+                </v-row>
 
-                    <v-row class="rowInputs">
-                        <v-text-field label = "Number of Shares" outlined v-model="num_shares" @keyup.enter="addItem"> </v-text-field>
-                    </v-row>
+                <v-row class="rowInputs">
+                    <v-text-field label = "Number of Shares" outlined v-model="num_shares" @keyup.enter="addItem"> </v-text-field>
+                </v-row>
 
-                    <v-row class="addButton">
-                        <v-btn color="primary" elevation="5" @click.native="addStock">Add</v-btn>
-                    </v-row>
-                </v-col>
+                <v-row class="addButton">
+                    <v-btn block dark color="black" elevation="2" @click.native="addStock">Add</v-btn>
+                </v-row>
+            </v-col>
 
-                <v-simple-table fixed-header>
-                <template v-slot:default>
-                    <thead>
-                        <tr>
+            <v-simple-table fixed-header>
+            <template v-slot:default>
+                <thead>
+                    <tr>
+                        <th class="text-left">
+                            Ticker
+                        </th>
+                        <th class="text-left">
+                            Average Price
+                        </th>
                             <th class="text-left">
-                                Ticker
-                            </th>
-                            <th class="text-left">
-                                Average Price
-                            </th>
-                             <th class="text-left">
-                                Number of Shares
-                            </th>
-                            <th class="text-center">
-                                <!-- # -->
-                            </th> 
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(stock,index) in stocks" :key="index">
-                            <td> {{stock.tick}} </td>
-                            <td> {{stock.avgP}} </td>
-                            <td> {{stock.numS}} </td>
-                            <td>
-                                <div class="text-center" @click="deleteStock(index,stock.tick)">
-                                    <span class="fa fa-trash"></span>
-                                </div>
-                                
-                            </td>
-                        </tr>
-                    </tbody>
-                </template>
+                            Number of Shares
+                        </th>
+                        <th class="text-center">
+                            <!-- # -->
+                        </th> 
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(stock,index) in stocks" :key="index">
+                        <td> {{stock.tick}} </td>
+                        <td> {{stock.avgP}} </td>
+                        <td> {{stock.numS}} </td>
+                        <td>
+                            <div class="text-center" @click="deleteStock(index,stock.tick)">
+                                <span class="fa fa-trash"></span>
+                            </div>
+                            
+                        </td>
+                    </tr>
+                </tbody>
+            </template>
             </v-simple-table>
 
-            </v-container>
-        </v-form>
+        </v-container>
 
-<!--         <v-container class="grey lighten-6 listOfStocks">
-            
-        </v-container> -->
-        
+
+        <div class="pieChart">
+            <apexchart type="pie" width="660" :options="chartOptions" :series="series"></apexchart>
+        </div>
+
     </div>
 </template>
 
@@ -71,6 +70,7 @@ import axios from 'axios';
 export default {
      mounted(){
          this.getAndListAllStocks();
+
     },
 
     methods: {
@@ -125,6 +125,7 @@ export default {
         },
 
         getAndListAllStocks: function(){
+
             const getData={
                 ticker: this.ticker.trim(),
                 avgPrice: this.avg_price.trim(),
@@ -151,14 +152,31 @@ export default {
     },
 
     data(){
+
         return{
             ticker:'',
             avg_price:'',
             num_shares:'',
-            stocks: [
+            stocks: [],
 
-            ]
+            series: [44, 55, 13, 43, 22],
+            chartOptions: {
+                labels: ['Team A', 'Team B', 'Team C', 'Team D', 'Team E'],
+                responsive: [{
+                breakpoint: 480,
+                options: {
+                    chart: {
+                    width: 200
+                    },
+                    legend: {
+                    position: 'bottom'
+                    }
+                }
+                }]
+            }
+
         }
+
     }
     
 };
@@ -169,17 +187,28 @@ export default {
 <style scoped>
     .addStockContainer {
         float:left;
-        max-width:25%;
+        max-width:30%;
         padding-bottom: 1.5%;
+        margin-left: 2em;
+        min-height: 100%;
+        position:absolute;
+        background-color: #FCFCFC;
     }
     .colInputs{
         max-width:100%;
     }
     .rowInputs{
-        margin-bottom: -8%;
+        margin-bottom: -6.5%;
     }
     .addButton{
         margin-bottom: 3%;
     }
-
+    .pieChart{
+        float:right;
+    }
+    .addStockTitle{
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold;
+    }
+    
 </style>
