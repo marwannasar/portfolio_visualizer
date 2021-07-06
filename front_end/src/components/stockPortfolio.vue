@@ -68,7 +68,7 @@
 import axios from 'axios';
 export default {
      mounted(){
-
+         this.getAndListAllStocks();
     },
 
     methods: {
@@ -87,8 +87,8 @@ export default {
                 axios.get('http://localhost:8080/stocks/' + postData.ticker)
                 .then(response =>{
                     //console.log(response);
-                    postData.avgPrice = response.data[0].avgPrice;
-                    postData.numShares = response.data[0].numShares;
+                    postData.avgPrice = response.data[0].avgPrice.toFixed(2);
+                    postData.numShares = response.data[0].numShares.toFixed(2);
     
                     //console.log(postData.avgPrice, postData.numShares);
 
@@ -120,6 +120,31 @@ export default {
         deleteStock(index,ticker){
             axios.delete('http://localhost:8080/stocks/' + ticker);
             this.stocks.splice(index,1);
+        },
+
+        getAndListAllStocks: function(){
+            const getData={
+                ticker: this.ticker.trim(),
+                avgPrice: this.avg_price.trim(),
+                numShares: this.num_shares.trim()
+            }
+
+            axios.get('http://localhost:8080/stocks')
+            .then(response => {
+                for (let i = 0; i < response.data.length; i++){
+                    getData.ticker = response.data[i].ticker;
+                    getData.avgPrice = response.data[i].avgPrice.toFixed(2);
+                    getData.numShares = response.data[i].numShares.toFixed(2);
+                    
+                    this.stocks.push({
+                        tick: getData.ticker,
+                        avgP: getData.avgPrice,
+                        numS: getData.numShares
+                    })
+
+                }
+
+            })
         }
     },
 

@@ -25,7 +25,7 @@ public class PortfolioService {
 
     public List<holdings> getSpecificStockInfo(String ticker) {
         holdings theStock = portfolioRepository.findById(ticker).orElse(null);
-        System.out.println(List.of(theStock));
+        //System.out.println(List.of(theStock));
         return List.of(theStock);
     }
 
