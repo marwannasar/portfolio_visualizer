@@ -5,15 +5,15 @@
             <v-col cols="2" class="colInputs">
 
                 <v-row class="rowInputs">
-                    <v-text-field label = "Ticker" outlined v-model="ticker" @keyup.enter="addItem"> </v-text-field>
+                    <v-text-field label = "Ticker" outlined background-color="white" v-model="ticker" @keyup.enter="addItem"> </v-text-field>
                 </v-row>
 
                 <v-row class="rowInputs">
-                    <v-text-field label = "Average Price" outlined v-model="avg_price" @keyup.enter="addItem"> </v-text-field>
+                    <v-text-field label = "Average Price" outlined background-color="white" v-model="avg_price" @keyup.enter="addItem"> </v-text-field>
                 </v-row>
 
                 <v-row class="rowInputs">
-                    <v-text-field label = "Number of Shares" outlined v-model="num_shares" @keyup.enter="addItem"> </v-text-field>
+                    <v-text-field label = "Number of Shares" outlined background-color="white" v-model="num_shares" @keyup.enter="addItem"> </v-text-field>
                 </v-row>
 
                 <v-row class="addButton">
@@ -70,7 +70,6 @@ import axios from 'axios';
 export default {
      mounted(){
          this.getAndListAllStocks();
-
     },
 
     methods: {
@@ -108,6 +107,9 @@ export default {
                         avgP: postData.avgPrice,
                         numS: postData.numShares
                     })
+
+                    this.chartOptions.labels.push(postData.ticker)
+                    this.series.push((postData.numShares * postData.avgPrice))
                     
                 })
                 .catch(error => console.log(error))
@@ -145,9 +147,16 @@ export default {
                         numS: getData.numShares
                     })
 
+                    this.chartOptions.labels.push(getData.ticker)
+                    this.series.push((getData.numShares * getData.avgPrice))
+
+                    //console.log(this.chartOptions.labels[i]);
+                    //console.log(this.series[i]);
+
                 }
 
             })
+            
         }
     },
 
@@ -159,9 +168,9 @@ export default {
             num_shares:'',
             stocks: [],
 
-            series: [44, 55, 13, 43, 22],
+            series: [], // totalInvested as doubles
             chartOptions: {
-                labels: ['Team A', 'Team B', 'Team C', 'Team D', 'Team E'],
+                labels: [], //ticker names
                 responsive: [{
                 breakpoint: 480,
                 options: {
