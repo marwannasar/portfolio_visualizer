@@ -73,6 +73,34 @@ export default {
     },
 
     methods: {
+        updateChart(ticker, mode, avgPrice = 0, numShares = 0){ // mode 0 = delete, 1 = add/update
+            if (mode == 1){ 
+                if (this.chartOptions.labels.includes(ticker)){ // update 
+                    //console.log("FOUND MATCH TICKER");
+                    this.position = this.chartOptions.labels.indexOf(ticker);
+                    this.series[this.position] = avgPrice * numShares; 
+                    this.series.push(1);
+                    this.series.pop();
+                }
+
+                else{ // add
+                    this.chartOptions.labels.push(ticker);
+                    this.series.push(avgPrice * numShares);
+                }
+            }
+            
+            else{ // delete
+                this.position = this.chartOptions.labels.indexOf(ticker);
+                this.chartOptions.labels.splice(this.position, 1);
+                this.series.splice(this.position, 1);  
+                
+            }
+
+            //console.log(this.chartOptions.labels);
+            //console.log(this.series); 
+            
+        },
+
         addStock: function(){
             if (this.ticker.trim().length === 0) return;
             if (this.avg_price.trim().length === 0) return;
@@ -108,8 +136,7 @@ export default {
                         numS: postData.numShares
                     })
 
-                    this.chartOptions.labels.push(postData.ticker)
-                    this.series.push((postData.numShares * postData.avgPrice))
+                    this.updateChart(postData.ticker, 1, postData.avgPrice, postData.numShares);
                     
                 })
                 .catch(error => console.log(error))
@@ -124,7 +151,9 @@ export default {
         deleteStock(index,ticker){
             axios.delete('http://localhost:8080/stocks/' + ticker);
             this.stocks.splice(index,1);
+            this.updateChart(ticker, 0);
         },
+
 
         getAndListAllStocks: function(){
 
@@ -167,6 +196,8 @@ export default {
             avg_price:'',
             num_shares:'',
             stocks: [],
+
+            position:-1,
 
             series: [], // totalInvested as doubles
             chartOptions: {
