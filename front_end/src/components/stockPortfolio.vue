@@ -21,7 +21,7 @@
                 </v-row>
             </v-col>
 
-            <v-simple-table fixed-header>
+            <v-simple-table fixed-header height="545px">
             <template v-slot:default>
                 <thead>
                     <tr>
@@ -31,8 +31,11 @@
                         <th class="text-left">
                             Average Price
                         </th>
-                            <th class="text-left">
+                        <th class="text-left">
                             Number of Shares
+                        </th>
+                        <th class="text-left">
+                            Total Invested
                         </th>
                         <th class="text-center">
                             <!-- # -->
@@ -44,6 +47,7 @@
                         <td> {{stock.tick}} </td>
                         <td> {{stock.avgP}} </td>
                         <td> {{stock.numS}} </td>
+                        <td> {{stock.totI}} </td>
                         <td>
                             <div class="text-center" @click="deleteStock(index,stock.tick)">
                                 <span class="fa fa-trash"></span>
@@ -57,9 +61,8 @@
 
         </v-container>
 
-
         <div class="pieChart">
-            <apexchart type="pie" width="660" :options="chartOptions" :series="series"></apexchart>
+            <apexchart type="pie" width="720" :options="chartOptions" :series="series"></apexchart>
         </div>
 
     </div>
@@ -133,7 +136,8 @@ export default {
                     this.stocks.push({
                         tick: postData.ticker,
                         avgP: postData.avgPrice,
-                        numS: postData.numShares
+                        numS: postData.numShares,
+                        totI: (postData.avgPrice * postData.numShares).toFixed(2)
                     })
 
                     this.updateChart(postData.ticker, 1, postData.avgPrice, postData.numShares);
@@ -173,7 +177,8 @@ export default {
                     this.stocks.push({
                         tick: getData.ticker,
                         avgP: getData.avgPrice,
-                        numS: getData.numShares
+                        numS: getData.numShares,
+                        totI: (getData.avgPrice * getData.numShares).toFixed(2)
                     })
 
                     this.chartOptions.labels.push(getData.ticker)
