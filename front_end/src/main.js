@@ -20,8 +20,7 @@ Vue.component('apexchart', VueApexCharts);
 new Vue({
   vuetify:new Vuetify(),
   render: h => h(App),
-  mounted: function(){
-  }
+  mounted: function(){}
 
 }).$mount('#app') 
 

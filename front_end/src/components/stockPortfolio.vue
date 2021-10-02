@@ -130,17 +130,25 @@ export default {
                 .then(response =>{
                     postData.avgPrice = response.data[0].avgPrice.toFixed(2);
                     postData.numShares = response.data[0].numShares.toFixed(2);
-    
-                    axios.get(apiEndpoint + postData.ticker + "&to_currency=USD&apikey=" + process.env.API_KEY) 
-                    .then(response=> {
-                        postData.currentPrice = response.data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]
-                        postData.pl= this.percentDiff(postData.avgPrice, postData.currentPrice) * 100
 
+                    axios.get(apiEndpoint + postData.ticker + "&to_currency=" + process.env.VUE_APP_CURRENCY + "&apikey=" + process.env.VUE_APP_API_KEY) 
+                    .then(response=> {
+
+                        try{
+                            postData.currentPrice = response.data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]
+                            postData.pl= (this.percentDiff(postData.avgPrice, postData.currentPrice) * 100).toFixed(2)
+                        }
+
+                        catch(err){
+                            postData.pl = "DNE"
+                            console.log("stop using the api im cheap with free version", err)
+                        }
+                        
                         this.stocks.forEach(function(element,index,object){
                         //console.log(element);
                         //console.log(postData.ticker, element.tick);
                         if (element.tick === postData.ticker){
-                            console.log("found match (updating stock)");
+                            //console.log("found match (updating stock)");
                             object.splice(index,1);
                         }
                         });
@@ -150,7 +158,7 @@ export default {
                         avgP: postData.avgPrice,
                         numS: postData.numShares,
                         totI: (postData.avgPrice * postData.numShares).toFixed(2),
-                        percentD: postData.pl.toFixed(2),
+                        percentD: postData.pl,
                         })
 
                     })
@@ -179,50 +187,53 @@ export default {
         },
 
 
-        getAndListAllStocks: function(){
+        getAndListAllStocks: async function(){
             
             var apiEndpoint = "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency="
             const getData={
-                ticker: this.ticker.trim(),
-                avgPrice: this.avg_price.trim(),
-                numShares: this.num_shares.trim(),
+                ticker: null,
+                avgPrice: null,
+                numShares: null,
                 currentPrice: null,
                 pl: null
             }
 
-            axios.get('http://localhost:8080/stocks')
-            .then(response => {
-                for (let i = 0; i < response.data.length; i++){
-                    getData.ticker = response.data[i].ticker;
-                    getData.avgPrice = response.data[i].avgPrice.toFixed(2);
-                    getData.numShares = response.data[i].numShares.toFixed(2);
-                    axios.get(apiEndpoint + getData.ticker + "&to_currency=USD&apikey=" + process.env.API_KEY)
-                    .then(response=> {
-                        getData.currentPrice = response.data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]
-                        getData.pl= this.percentDiff(getData.avgPrice, getData.currentPrice) * 100
+            const response = await axios.get('http://localhost:8080/stocks')
+            for (let i = 0; i < response.data.length; i++){  
+                getData.ticker = response.data[i].ticker; 
+                getData.avgPrice = response.data[i].avgPrice.toFixed(2);
+                getData.numShares = response.data[i].numShares.toFixed(2); 
 
-                        this.stocks.push({
-                        tick: getData.ticker,
-                        avgP: getData.avgPrice,
-                        numS: getData.numShares,
-                        totI: (getData.avgPrice * getData.numShares).toFixed(2),
-                        percentD: getData.pl.toFixed(2),
-                        })
-
-                    })
-
-                    this.chartOptions.labels.push(getData.ticker)
-                    this.series.push((getData.numShares * getData.avgPrice))
-
-                    //console.log(this.chartOptions.labels[i]);
-                    //console.log(this.series[i]);
-
+                try{
+                    const response2 = await axios.get(apiEndpoint + getData.ticker + "&to_currency=" + process.env.VUE_APP_CURRENCY + "&apikey=" + process.env.VUE_APP_API_KEY)
+                    getData.currentPrice = response2.data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]
+                    getData.pl= (this.percentDiff(getData.avgPrice, getData.currentPrice) * 100).toFixed(2)
                 }
+                
+                catch(err){
+                    getData.currentPrice = null
+                    getData.pl = "DNE"
 
-            })
+                    console.log("stop using the api im cheap with free version", err)
+                }
+        
+                this.stocks.push({
+                    tick: getData.ticker,
+                    avgP: getData.avgPrice,
+                    numS: getData.numShares,
+                    totI: (getData.avgPrice * getData.numShares).toFixed(2),
+                    percentD: getData.pl,
+                })
+
+                this.chartOptions.labels.push(getData.ticker)
+                this.series.push((getData.numShares * getData.avgPrice))
+
+                //console.log(this.chartOptions.labels[i]);
+                //console.log(this.series[i]);
             
+            }
         }
-    },
+    },  
 
     data(){
 
