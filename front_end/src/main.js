@@ -23,5 +23,5 @@ new Vue({
   mounted: function(){
   }
 
-}).$mount('#app')
+}).$mount('#app') 
 

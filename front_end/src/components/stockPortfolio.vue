@@ -29,15 +29,18 @@
                             Ticker
                         </th>
                         <th class="text-left">
-                            Average Price
+                            Average Price 
                         </th>
                         <th class="text-left">
-                            Number of Shares
+                            Number of Shares 
                         </th>
                         <th class="text-left">
-                            Total Invested
+                            Total Invested 
                         </th>
-                        <th class="text-center">
+                        <th class="text-left">
+                            Profit/Loss 
+                        </th>
+                        <th class="text-center" >
                             <!-- # -->
                         </th> 
                     </tr>
@@ -48,11 +51,14 @@
                         <td> {{stock.avgP}} </td>
                         <td> {{stock.numS}} </td>
                         <td> {{stock.totI}} </td>
+                        <td v-bind:class="{'lossColour': stock.percentD < 0, 'profitColour': stock.percentD > 0}"> 
+                            {{stock.percentD}}%
+                            
+                        </td> 
                         <td>
                             <div class="text-center" @click="deleteStock(index,stock.tick)">
                                 <span class="fa fa-trash"></span>
                             </div>
-                            
                         </td>
                     </tr>
                 </tbody>
@@ -105,39 +111,48 @@ export default {
         },
 
         addStock: function(){
+            var apiEndpoint = "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency="
+
             if (this.ticker.trim().length === 0) return;
             if (this.avg_price.trim().length === 0) return;
             if (this.num_shares.trim().length === 0) return;
 
             const postData={
-                ticker: this.ticker.trim(),
+                ticker: this.ticker.trim().toUpperCase(),
                 avgPrice: this.avg_price.trim(),
-                numShares: this.num_shares.trim()
+                numShares: this.num_shares.trim(),
+                currentPrice: null,
+                pl: null
             }
 
             axios.post('http://localhost:8080/stocks', postData).then(() =>{
                 axios.get('http://localhost:8080/stocks/' + postData.ticker)
                 .then(response =>{
-                    //console.log(response);
                     postData.avgPrice = response.data[0].avgPrice.toFixed(2);
                     postData.numShares = response.data[0].numShares.toFixed(2);
     
-                    //console.log(postData.avgPrice, postData.numShares);
+                    axios.get(apiEndpoint + postData.ticker + "&to_currency=USD&apikey=" + process.env.API_KEY) 
+                    .then(response=> {
+                        postData.currentPrice = response.data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]
+                        postData.pl= this.percentDiff(postData.avgPrice, postData.currentPrice) * 100
 
-                    this.stocks.forEach(function(element,index,object){
+                        this.stocks.forEach(function(element,index,object){
                         //console.log(element);
                         //console.log(postData.ticker, element.tick);
                         if (element.tick === postData.ticker){
                             console.log("found match (updating stock)");
                             object.splice(index,1);
                         }
-                    });
+                        });
 
-                    this.stocks.push({
+                        this.stocks.push({
                         tick: postData.ticker,
                         avgP: postData.avgPrice,
                         numS: postData.numShares,
-                        totI: (postData.avgPrice * postData.numShares).toFixed(2)
+                        totI: (postData.avgPrice * postData.numShares).toFixed(2),
+                        percentD: postData.pl.toFixed(2),
+                        })
+
                     })
 
                     this.updateChart(postData.ticker, 1, postData.avgPrice, postData.numShares);
@@ -158,13 +173,21 @@ export default {
             this.updateChart(ticker, 0);
         },
 
+        percentDiff(avgPrice, currentPrice){
+            var percentDiff = (currentPrice - avgPrice) / avgPrice
+            return percentDiff
+        },
+
 
         getAndListAllStocks: function(){
-
+            
+            var apiEndpoint = "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency="
             const getData={
                 ticker: this.ticker.trim(),
                 avgPrice: this.avg_price.trim(),
-                numShares: this.num_shares.trim()
+                numShares: this.num_shares.trim(),
+                currentPrice: null,
+                pl: null
             }
 
             axios.get('http://localhost:8080/stocks')
@@ -173,12 +196,19 @@ export default {
                     getData.ticker = response.data[i].ticker;
                     getData.avgPrice = response.data[i].avgPrice.toFixed(2);
                     getData.numShares = response.data[i].numShares.toFixed(2);
-                    
-                    this.stocks.push({
+                    axios.get(apiEndpoint + getData.ticker + "&to_currency=USD&apikey=" + process.env.API_KEY)
+                    .then(response=> {
+                        getData.currentPrice = response.data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]
+                        getData.pl= this.percentDiff(getData.avgPrice, getData.currentPrice) * 100
+
+                        this.stocks.push({
                         tick: getData.ticker,
                         avgP: getData.avgPrice,
                         numS: getData.numShares,
-                        totI: (getData.avgPrice * getData.numShares).toFixed(2)
+                        totI: (getData.avgPrice * getData.numShares).toFixed(2),
+                        percentD: getData.pl.toFixed(2),
+                        })
+
                     })
 
                     this.chartOptions.labels.push(getData.ticker)
@@ -232,7 +262,7 @@ export default {
 <style scoped>
     .addStockContainer {
         float:left;
-        max-width:30%;
+        max-width:33.33%;
         padding-bottom: 1.5%;
         margin-left: 2em;
         min-height: 100%;
@@ -243,7 +273,7 @@ export default {
         max-width:100%;
     }
     .rowInputs{
-        margin-bottom: -6.5%;
+        margin-bottom: -6%;
     }
     .addButton{
         margin-bottom: 3%;
@@ -254,6 +284,12 @@ export default {
     .addStockTitle{
         font-family: 'Roboto', sans-serif;
         font-weight: bold;
+    }
+    .profitColour{
+        color: green
+    }
+    .lossColour{
+        color: red;
     }
     
 </style>
