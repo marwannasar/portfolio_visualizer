@@ -1,7 +1,7 @@
 <template>
     <div>
         <v-container class="addStockContainer">
-            <h2 class="addStockTitle">Add/Update Stock</h2>
+            <h2 class="addStockTitle">Add/Update Crypto</h2>
             <v-col cols="2" class="colInputs">
 
                 <v-row class="rowInputs">
@@ -13,7 +13,7 @@
                 </v-row>
 
                 <v-row class="rowInputs">
-                    <v-text-field label = "Number of Shares" outlined background-color="white" v-model="num_shares" @keyup.enter="addItem"> </v-text-field>
+                    <v-text-field label = "Amount" outlined background-color="white" v-model="num_shares" @keyup.enter="addItem"> </v-text-field>
                 </v-row>
 
                 <v-row class="addButton">
@@ -32,7 +32,7 @@
                             Average Price 
                         </th>
                         <th class="text-left">
-                            Number of Shares 
+                            Amount
                         </th>
                         <th class="text-left">
                             Total Invested 
@@ -52,7 +52,7 @@
                         <td> {{stock.numS}} </td>
                         <td> {{stock.totI}} </td>
                         <td v-bind:class="{'lossColour': stock.percentD < 0, 'profitColour': stock.percentD > 0}"> 
-                            {{stock.percentD}}%
+                            ${{stock.dollarD}} ({{stock.percentD}}%)
                             
                         </td> 
                         <td>
@@ -67,9 +67,12 @@
 
         </v-container>
 
-        <div class="pieChart">
-            <apexchart type="pie" width="720" :options="chartOptions" :series="series"></apexchart>
-        </div>
+        <v-container class="chartContainer">
+            <div class="pieChart">
+                <apexchart type="pie" width="800" :options="chartOptions" :series="series"></apexchart>
+            </div> 
+
+        </v-container>
 
     </div>
 </template>
@@ -122,7 +125,8 @@ export default {
                 avgPrice: this.avg_price.trim(),
                 numShares: this.num_shares.trim(),
                 currentPrice: null,
-                pl: null
+                pl: null,
+                plInDollars: null
             }
 
             axios.post('http://localhost:8080/stocks', postData).then(() =>{
@@ -137,28 +141,33 @@ export default {
                         try{
                             postData.currentPrice = response.data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]
                             postData.pl= (this.percentDiff(postData.avgPrice, postData.currentPrice) * 100).toFixed(2)
+                            postData.plInDollars = (this.dollarPL(postData.avgPrice, postData.numShares, postData.currentPrice)).toFixed(2)
+                            this.$totalDollarPL += postData.plInDollars
+                            console.log(this.$totalDollarPL)
                         }
 
                         catch(err){
                             postData.pl = "DNE"
+                            postData.plInDollars = "DNE"
                             console.log("stop using the api im cheap with free version", err)
                         }
                         
                         this.stocks.forEach(function(element,index,object){
-                        //console.log(element);
-                        //console.log(postData.ticker, element.tick);
-                        if (element.tick === postData.ticker){
-                            //console.log("found match (updating stock)");
-                            object.splice(index,1);
-                        }
+                            //console.log(element);
+                            //console.log(postData.ticker, element.tick);
+                            if (element.tick === postData.ticker){
+                                //console.log("found match (updating stock)");
+                                object.splice(index,1);
+                            }
                         });
 
                         this.stocks.push({
-                        tick: postData.ticker,
-                        avgP: postData.avgPrice,
-                        numS: postData.numShares,
-                        totI: (postData.avgPrice * postData.numShares).toFixed(2),
-                        percentD: postData.pl,
+                            tick: postData.ticker,
+                            avgP: postData.avgPrice,
+                            numS: postData.numShares,
+                            totI: (postData.avgPrice * postData.numShares).toFixed(2),
+                            percentD: postData.pl,
+                            dollarD: postData.plInDollars
                         })
 
                     })
@@ -176,14 +185,20 @@ export default {
         },
 
         deleteStock(index,ticker){
+            //this.$totalDollarPL -=  add code to adjust the total PL after its deleted, need variables from post or getdata here
             axios.delete('http://localhost:8080/stocks/' + ticker);
             this.stocks.splice(index,1);
             this.updateChart(ticker, 0);
         },
 
         percentDiff(avgPrice, currentPrice){
-            var percentDiff = (currentPrice - avgPrice) / avgPrice
-            return percentDiff
+            var thePercentDiff = (currentPrice - avgPrice) / avgPrice
+            return thePercentDiff
+        },
+
+        dollarPL(avgPrice, numShares, currentPrice){
+            var theDollarPL = (currentPrice - avgPrice) * numShares
+            return theDollarPL
         },
 
 
@@ -195,8 +210,10 @@ export default {
                 avgPrice: null,
                 numShares: null,
                 currentPrice: null,
-                pl: null
+                pl: null,
+                plInDollars: null
             }
+            this.$totalDollarPL = 0
 
             const response = await axios.get('http://localhost:8080/stocks')
             for (let i = 0; i < response.data.length; i++){  
@@ -208,11 +225,15 @@ export default {
                     const response2 = await axios.get(apiEndpoint + getData.ticker + "&to_currency=" + process.env.VUE_APP_CURRENCY + "&apikey=" + process.env.VUE_APP_API_KEY)
                     getData.currentPrice = response2.data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]
                     getData.pl= (this.percentDiff(getData.avgPrice, getData.currentPrice) * 100).toFixed(2)
+                    getData.plInDollars = (this.dollarPL(getData.avgPrice, getData.numShares, getData.currentPrice)).toFixed(2)
+                    this.$totalDollarPL += getData.plInDollars
+                    console.log(this.$totalDollarPL)
                 }
                 
                 catch(err){
                     getData.currentPrice = null
                     getData.pl = "DNE"
+                    getData.plInDollars = "DNE"
 
                     console.log("stop using the api im cheap with free version", err)
                 }
@@ -223,6 +244,7 @@ export default {
                     numS: getData.numShares,
                     totI: (getData.avgPrice * getData.numShares).toFixed(2),
                     percentD: getData.pl,
+                    dollarD: getData.plInDollars
                 })
 
                 this.chartOptions.labels.push(getData.ticker)
@@ -232,6 +254,7 @@ export default {
                 //console.log(this.series[i]);
             
             }
+            console.log(this.$totalDollarPL)
         }
     },  
 
@@ -259,7 +282,7 @@ export default {
                     }
                 }
                 }]
-            }
+            },
 
         }
 
@@ -280,6 +303,14 @@ export default {
         position:absolute;
         background-color: #FCFCFC;
     }
+    .chartContainer {
+        float: right;
+        max-width: 66.66%;
+        padding-bottom: 1.5%;
+        margin-right: 2em;
+        min-height: 100%;
+        background-color: #FCFCFC;
+    }
     .colInputs{
         max-width:100%;
     }
@@ -290,6 +321,9 @@ export default {
         margin-bottom: 3%;
     }
     .pieChart{
+        float:right;
+    }
+    .barChart{
         float:right;
     }
     .addStockTitle{

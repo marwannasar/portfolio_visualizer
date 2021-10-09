@@ -20,6 +20,7 @@ export default {
   components: {
      stockPortfolio 
   }
+  
 
 }
 </script>

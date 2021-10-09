@@ -10,6 +10,7 @@ import VueApexCharts from 'vue-apexcharts'
 
 window.axios = require('axios');
 
+Vue.prototype.$totalDollarPL
 
 Vue.config.productionTip = false
 Vue.use(Vuetify)
